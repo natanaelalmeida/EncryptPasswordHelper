@@ -2,6 +2,7 @@
 using System.Text;
 using System.Security.Cryptography;
 using EncryptPasswordHelper.Util;
+using EncryptPasswordHelper.Entities;
 
 namespace EncryptPasswordHelper.Crypto
 {
@@ -10,7 +11,7 @@ namespace EncryptPasswordHelper.Crypto
         private string _Internalkey;               
         private const int _KeySize = 2048;
 
-        private string _xml;
+        private string _xml;        
 
         private RSACryptoServiceProvider _rsaProvider;        
 
@@ -20,30 +21,27 @@ namespace EncryptPasswordHelper.Crypto
             _rsaProvider = new RSACryptoServiceProvider(_KeySize);
         }
 
-        public byte[] Encrypt(string password, string publicKey)
-        {
-            if (XmlHelper.IsNotExists(publicKey))
-                throw new Exception("Public key is already being used");
-
+        public DataPassword Encrypt(string password)
+        {            
             var privKey = _rsaProvider.ExportParameters(false);
             var pub = _rsaProvider.ExportParameters(true);
 
             _xml = _rsaProvider.ToXmlString(true);
             _rsaProvider.ImportParameters(privKey);
-            XmlHelper.Save(_xml, publicKey);
 
-            return _rsaProvider.Encrypt(ConvertToByte($"{ _Internalkey }_{ password }"), false);
+            var publicKey = PublicKey.From(_xml);
+            var pass = _rsaProvider.Encrypt(ConvertToByte($"{ _Internalkey }_{ password }"), false);
+            
+            return new DataPassword(pass, publicKey);
         }        
 
         public string Descrypt(byte[] password, string publicKey)
         {
-            _rsaProvider.FromXmlString(XmlHelper.Load(publicKey));             
+            _rsaProvider.FromXmlString(PublicKey.Parse(publicKey));             
             return Encoding.UTF8.GetString(_rsaProvider.Decrypt(password, false)).Replace(_Internalkey + "_", "");
         }
 
-        private byte[] ConvertToByte(string value) => new ASCIIEncoding().GetBytes(value);
-
-        public bool IsExistsPublicKey(string publicKey) => XmlHelper.IsNotExists(publicKey);
+        private byte[] ConvertToByte(string value) => new ASCIIEncoding().GetBytes(value);        
 
         public void Dispose()
         {

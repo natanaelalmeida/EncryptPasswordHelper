@@ -6,7 +6,7 @@ namespace EncryptPasswordHelper.Tests
     [TestClass]
     public class CryptoServiceTests
     {
-        private readonly CryptoService cryptoService = new CryptoService("G3soft#2628");        
+        private readonly CryptoService cryptoService = new CryptoService("InternalKey#3005");        
 
         [TestMethod]
         [TestCategory("CryptoService")]
@@ -14,8 +14,8 @@ namespace EncryptPasswordHelper.Tests
         {
             string pass = "test123";
 
-            var password = cryptoService.Encrypt(pass, "ExistspublicKeyTest");
-            Assert.IsTrue(password.Length > 0);
+            var password = cryptoService.Encrypt(pass);
+            Assert.IsTrue(password.Password.Length > 0);
         }
 
         [TestMethod]
@@ -25,18 +25,10 @@ namespace EncryptPasswordHelper.Tests
             string pass = "test";
 
             CryptoService cryptoService = new CryptoService("G3soft#2628");
-            var password = cryptoService.Encrypt(pass, "publicKeyTest");
-            var descrypt = cryptoService.Descrypt(password, "publicKeyTest");
+            var data = cryptoService.Encrypt(pass);
+            var descrypt = cryptoService.Descrypt(data.Password, data.PublicKey);
 
             Assert.IsTrue(descrypt == pass);
         }
-
-        [TestMethod]
-        [TestCategory("CryptoService")]
-        public void IsExistsPublicKey() => Assert.IsTrue(cryptoService.IsExistsPublicKey("ExistspublicKeyTest"));        
-
-        [TestMethod]
-        [TestCategory("CryptoService")]
-        public void IsNotExistsPublicKey() => Assert.IsFalse(cryptoService.IsExistsPublicKey("NotExistsPublicKeyTest"));
     }
 }
